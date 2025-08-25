@@ -102,7 +102,7 @@ To resolve the `403 Forbidden` error, I had to update the SELinux policy to expl
     # Output: <h1>SELinux is Working!</h1>
 ```
 
-![CLI Screenshot](individual-projects/SELinux-access-control/SElinux-Access.png)
+![CLI Screenshot](/SElinux-Access.png)
 
 ***
 
