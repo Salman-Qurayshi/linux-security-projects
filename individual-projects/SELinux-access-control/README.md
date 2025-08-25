@@ -20,15 +20,14 @@ The goal was to get the Apache web server (`httpd`) to serve a simple HTML page 
 
 1.  **Installed Apache and created the new directory.**
 
-    ```bash
-
+```
     sudo yum install httpd -y
 
     sudo mkdir -p /web_content/public
 
     echo "SELinux is Working" > /web_content/public/index.html
+```
 
-    ```
 
 2.  **Configured Apache's `DocumentRoot`** to point to the new directory in `/etc/httpd/conf/httpd.conf`.
 
@@ -36,13 +35,13 @@ The goal was to get the Apache web server (`httpd`) to serve a simple HTML page 
 
 4.  **Restarted Apache and attempted to access the page** with `curl`.
 
-    ```bash
+```
 
     sudo systemctl restart httpd
 
     curl http://localhost
 
-    ```
+```
 
     This resulted in a `403 Forbidden` error, confirming that SELinux was successfully blocking access to the new, un-labeled directory.
 
@@ -60,13 +59,13 @@ To resolve the `403 Forbidden` error, I had to update the SELinux policy to expl
 
 1.  **Diagnosed the Root Cause**: I used `ls -Zd` to inspect the SELinux context of the new directory.
 
-    ```bash
+```
 
     ls -Zd /web_content/public
 
     # Output showed an incorrect context, such as default_t
 
-    ```
+```
 
     I confirmed that the SELinux context for the directory was not the correct `httpd_sys_content_t` type required by Apache.
 
@@ -76,7 +75,7 @@ To resolve the `403 Forbidden` error, I had to update the SELinux policy to expl
 
 
 
-    ```bash
+```
 
     # Add a permanent rule to the SELinux file context policy
 
@@ -88,7 +87,7 @@ To resolve the `403 Forbidden` error, I had to update the SELinux policy to expl
 
     sudo restorecon -R -v /web_content
 
-    ```
+ ```
 
 
 
@@ -96,15 +95,14 @@ To resolve the `403 Forbidden` error, I had to update the SELinux policy to expl
 
 
 
-    ```bash
+```
 
     curl http://localhost
 
     # Output: <h1>SELinux is Working!</h1>
+```
 
-    ```
-
-
+![CLI Screenshot](SElinux Access.png)
 
 ***
 
