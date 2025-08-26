@@ -27,29 +27,36 @@ The **Linux Auditing System** is a security framework that records security-rele
 
 ### Step 1: Confirm `auditd` Service Status
 We first verified that the `auditd` service was running correctly.
-
+```
    sudo systemctl status auditd
-
+```
 ### Step 2: Configure a Watch Rule
 We created a new file and then used `auditctl` to add a rule to monitor it. We used the `-w` flag to specify the file, `-p wa` to watch for write and attribute changes, and `-k project_file_monitor` to add a unique key for easy searching.
-
+```
    sudo touch /tmp/important_file.txt
    sudo auditctl -w /tmp/important_file.txt -p wa -k project_file_monitor
    sudo auditctl -l
-
+```
 ### Step 3: Trigger an Audit Event
 To test our rule, we attempted to write to the file. This action was intentionally performed without proper permissions to demonstrate `auditd`'s ability to log both successful and unsuccessful attempts.
-
+```
    sudo echo "This is a test." >> /tmp/important_file.txt
-
+```
 *Note: This command failed due to a common `sudo` redirection issue, but `auditd` correctly logged the failed attempt.*
 
 ### Step 4: Analyze the Log with `ausearch`
 Finally, we used `ausearch` with our custom key (`-k project_file_monitor`) to find the event in the audit logs.
-
+```
    sudo ausearch -k project_file_monitor
-
+```
 ***
+
+### Screenshots
+
+![Auditd](auditd.png)
+
+![Searching for the log](ausearch.png)
+
 
 ## Project Analysis and Results
 The `ausearch` output confirmed that `auditd` logged the failed write attempt. This is a critical result because it shows the system's ability to act as an immediate and detailed alert system.
