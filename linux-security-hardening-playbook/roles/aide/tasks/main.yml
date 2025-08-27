@@ -5,24 +5,37 @@
   yum:
     name: aide
     state: present
+  tags: aide
 
 - name: Initialize AIDE database
   command: aide --init
   args:
     creates: /var/lib/aide/aide.db.new.gz
+  tags: aide
 
 - name: Move new AIDE database into place
   command: mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
   args:
     removes: /var/lib/aide/aide.db.new.gz
+  tags: aide
 
 - name: Run AIDE check
   command: aide --check
   register: aide_check
   changed_when: false
+  tags: aide
+
+# ✅ NEW: Ensure reports directory exists
+- name: Ensure AIDE reports directory exists
+  file:
+    path: "/home/{{ lookup('env','USER') }}/reports/aide"
+    state: directory
+    mode: '0755'
+  tags: aide
 
 - name: Save AIDE report
   copy:
     content: "{{ aide_check.stdout }}"
     dest: "/home/{{ lookup('env','USER') }}/reports/aide/aide-report.txt"
     mode: '0644'
+  tags: aide
