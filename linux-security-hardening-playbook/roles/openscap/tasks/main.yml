@@ -1,6 +1,6 @@
---- 
-# Role: OpenSCAP Compliance Scanning
-# This role installs OpenSCAP and runs a CIS benchmark scan on CentOS Stream 9
+---
+# Role: OpenSCAP Compliance Scanning & Remediation
+# Installs OpenSCAP, runs CIS benchmark, applies automated remediation, and saves before/after reports
 
 - name: Install OpenSCAP packages
   yum:
@@ -9,18 +9,65 @@
       - scap-security-guide
     state: present
 
-- name: Ensure reports directory exists
+- name: Ensure OpenSCAP reports directory exists
   file:
     path: "/home/{{ lookup('env','USER') }}/reports/openscap"
-    mode: '0755'
     state: directory
+    mode: '0755'
 
-- name: Run OpenSCAP CIS scan
+# --------------------
+# BEFORE REMEDIATION
+# --------------------
+- name: Run OpenSCAP CIS scan (before remediation)
   command: >
     oscap xccdf eval
     --profile xccdf_org.ssgproject.content_profile_cis
-    --results /home/{{ lookup('env','USER') }}/reports/openscap/cis-results.xml
-    --report /home/{{ lookup('env','USER') }}/reports/openscap/cis-report.html
+    --results /home/{{ lookup('env','USER') }}/reports/openscap/cis-results-before.xml
+    --report /home/{{ lookup('env','USER') }}/reports/openscap/cis-report-before.html
     /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
   args:
-    creates: /home/{{ lookup('env','USER') }}/reports/openscap/cis-report.html
+    creates: /home/{{ lookup('env','USER') }}/reports/openscap/cis-report-before.html
+
+# --------------------
+# GENERATE REMEDIATION SCRIPT
+# --------------------
+- name: Generate CIS remediation script
+  command: >
+    oscap xccdf generate fix
+    --profile xccdf_org.ssgproject.content_profile_cis
+    /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+  register: cis_fix
+  changed_when: true
+
+- name: Save CIS remediation script to file
+  copy:
+    content: "{{ cis_fix.stdout }}"
+    dest: "/home/{{ lookup('env','USER') }}/reports/openscap/cis-remediate.sh"
+    mode: '0755'
+
+# --------------------
+# APPLY REMEDIATION
+# --------------------
+- name: Apply CIS remediation script
+  command: "bash /home/{{ lookup('env','USER') }}/reports/openscap/cis-remediate.sh"
+  args:
+    creates: "/home/{{ lookup('env','USER') }}/reports/openscap/cis-remediation-applied.txt"
+  register: remediation_apply
+
+- name: Touch a file to mark remediation applied
+  file:
+    path: "/home/{{ lookup('env','USER') }}/reports/openscap/cis-remediation-applied.txt"
+    state: touch
+
+# --------------------
+# AFTER REMEDIATION
+# --------------------
+- name: Run OpenSCAP CIS scan (after remediation)
+  command: >
+    oscap xccdf eval
+    --profile xccdf_org.ssgproject.content_profile_cis
+    --results /home/{{ lookup('env','USER') }}/reports/openscap/cis-results-after.xml
+    --report /home/{{ lookup('env','USER') }}/reports/openscap/cis-report-after.html
+    /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+  args:
+    creates: /home/{{ lookup('env','USER') }}/reports/openscap/cis-report-after.html
