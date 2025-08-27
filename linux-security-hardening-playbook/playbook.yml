@@ -3,5 +3,9 @@
   hosts: localhost
   become: yes
   roles:
-    - openscap
-    - aide
+    - { role: openscap, tags: ['openscap'] }
+    - { role: aide, tags: ['aide'] }
+    - { role: auditd, tags: ['auditd'] }
+    - { role: selinux, tags: ['selinux'] }
+    - { role: tls, tags: ['tls'] }
+    - { role: firewall, tags: ['firewall'] }
