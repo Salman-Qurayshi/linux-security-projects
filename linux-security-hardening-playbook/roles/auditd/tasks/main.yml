@@ -47,9 +47,3 @@
     mode: '0644'
   tags: auditd
 
-# Handlers
-- name: restart auditd
-  service:
-    name: auditd
-    state: restarted
-  tags: auditd
