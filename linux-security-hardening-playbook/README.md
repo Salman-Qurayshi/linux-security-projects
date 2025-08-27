@@ -1,16 +1,20 @@
-Here is your README content in a single code block of Markdown:
-MarkDown
 # Linux Security Hardening Project 🛡️
 
 Hi there! 👋 I'm Salman Qureshi, and this is my Linux Security Hardening project, where I explored and implemented multiple security practices on Linux systems using Ansible automation and individual security tools.
 
-This project showcases hands-on work securing Linux environments, monitoring systems, and managing secure communications.
-
 ## Project Overview
+
+This project demonstrates production-ready Linux security hardening through automation and industry-standard security frameworks. It implements multiple layers of security controls including intrusion detection, system auditing, access controls, encrypted communications, and CIS benchmark compliance.
 
 The goal of this project is to demonstrate practical Linux security hardening by using a combination of tools and an automated Ansible playbook.
 
 ## What’s included?
+
+* **Infrastructure as Code**: Ansible playbooks with role-based architecture
+* **Compliance Framework**: CIS (Center for Internet Security) benchmarks
+* **Security Monitoring**: Real-time file integrity and system auditing
+* **Access Control**: Mandatory Access Control (MAC) with SELinux
+* **Encryption**: TLS certificate management and secure communications
 
 * **AIDE (Advanced Intrusion Detection Environment)**: 
   * Detects unauthorized file changes.
@@ -33,45 +37,68 @@ The goal of this project is to demonstrate practical Linux security hardening by
 
 ## Project Structure
 
-(Here you can paste the tree output from VSCode)
+```
+
+linux-security-hardening-playbook
+    |-- playbook.yml
+    |-- reports
+    |   |-- aide
+    |   |   `-- aide-report.txt
+    |   |-- auditd
+    |   |   `-- auditd-rules.txt
+    |   |-- firewall
+    |   |   `-- firewall-report.txt
+    |   |-- openscap
+    |   |   |-- cis-remediate.sh
+    |   |   |-- cis-report-before.html
+    |   |   |-- cis-report.html
+    |   |   |-- cis-results-before.xml
+    |   |   `-- cis-results.xml
+    |   |-- selinux
+    |   |   `-- selinux-status.txt
+    |   `-- tls
+    |       `-- selfsigned.crt
+    `-- roles
+        |-- aide
+        |   `-- tasks
+        |       `-- main.yml
+        |-- auditd
+        |   |-- handlers
+        |   |   `-- main.yml
+        |   `-- tasks
+        |       `-- main.yml
+        |-- firewall
+        |   `-- tasks
+        |       `-- main.yml
+        |-- openscap
+        |   `-- tasks
+        |       `-- main.yml
+        |-- selinux
+        |   `-- tasks
+        |       `-- main.yml
+        `-- tls
+            `-- tasks
+                `-- main.yml
+
+27 directories, 30 files
+
+```
 
 ## How I Ran the Project
 
-### 1️⃣ AIDE - Intrusion Detection
+I first created the Ansible playbook (playbook.yml) along with role directories, each containing their main YAML files under `roles/<module>/tasks/main.yml`, to automate the deployment and configuration of all the security modules.
 
-* Initialize AIDE Database: `ansible-playbook playbook.yml --tags aide`
-* Verify reports: `reports/aide/aide-report.txt`
+After that, I ran each module individually using its specific tag to make sure everything was working correctly and verified the results in the reports directory. For example, I used the following command structure (placeholder used for each module tag):
 
-### 2️⃣ Auditd - System Logging
+`ansible-playbook playbook.yml --tags <module-tag>`
 
-* Apply Audit Rules: `ansible-playbook playbook.yml --tags auditd`
-* Check logs: `reports/auditd/auditd-rules.txt`
+Once all modules were confirmed to be working, I ran the entire playbook at once to apply all security hardening tasks sequentially:
 
-### 3️⃣ SELinux - Access Control
+`ansible-playbook playbook.yml`
 
-* Enable/Check SELinux: `ansible-playbook playbook.yml --tags selinux`
-* Check status report: `reports/selinux/selinux-status.txt`
+This automatically generated all reports in the reports directory.
 
-### 4️⃣ TLS - Secure Network Communication
-
-* Generate Self-Signed Certificates: `ansible-playbook playbook.yml --tags tls`
-* Check certificate: `reports/tls/selfsigned.crt`
-
-### 5️⃣ OpenSCAP - Compliance Scanning
-
-* Scan & Remediate with OpenSCAP: `ansible-playbook playbook.yml --tags openscap -K`
-* Reports:
-  + Before remediation: `reports/openscap/cis-report-before.html`
-  + After remediation: `reports/openscap/cis-report.html`
-  + Results XML: `reports/openscap/cis-results.xml`
-
-### 6️⃣ Run All Tasks at Once
-
-* `ansible-playbook playbook.yml -K`
-* This runs AIDE, Auditd, SELinux, TLS, and OpenSCAP sequentially.
-* All reports and changes are generated automatically.
-
-## Key Highlights / Portfolio Notes
+## Key Highlights 
 
 * Automated Linux security hardening using Ansible roles.
 * Hands-on with intrusion detection, auditing, access control, TLS encryption, and compliance scanning.
@@ -87,14 +114,9 @@ The goal of this project is to demonstrate practical Linux security hardening by
 | Auditd | System auditing & logging | `ansible-playbook playbook.yml --tags auditd` |
 | SELinux | Access control policies | `ansible-playbook playbook.yml --tags selinux` |
 | TLS | Encrypt network communication | `ansible-playbook playbook.yml --tags tls` |
-| OpenSCAP | Compliance & remediation | `ansible-playbook playbook.yml --tags openscap -K` |
-| Ansible | Automation of all tools | `ansible-playbook playbook.yml -K` |
+| OpenSCAP | Compliance & remediation | `ansible-playbook playbook.yml --tags openscap` |
+| Ansible | Automation of all tools | `ansible-playbook playbook.yml` |
 
-## Next Steps / Ideas
+## Conclusion
 
-* Add real CA certificates instead of self-signed.
-* Extend OpenSCAP remediations for more CIS benchmarks.
-* Integrate centralized logging and alerts for Auditd and AIDE.
-* Document before/after system snapshots for each tool.
-
-This project demonstrates practical Linux security hardening, combining automation, monitoring, and compliance—all skills valuable for cybersecurity and DevOps portfolios.
+This project demonstrates a hands-on approach to Linux security hardening using automation and industry-standard tools. By combining AIDE, Auditd, SELinux, TLS, and OpenSCAP with an Ansible playbook, I was able to secure, monitor, and audit a Linux system effectively while generating verifiable reports.
