@@ -31,9 +31,9 @@
   tags: firewall
 
 - name: Reload firewalld to apply changes
-  firewalld:
-    state: reloaded
+  command: firewall-cmd --reload
   tags: firewall
+
 
 - name: Ensure reports directory exists
   file:
