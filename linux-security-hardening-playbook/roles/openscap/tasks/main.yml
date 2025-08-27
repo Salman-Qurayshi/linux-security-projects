@@ -1,0 +1,26 @@
+---
+# Role: OpenSCAP Compliance Scanning
+# This role installs OpenSCAP and runs a CIS benchmark scan on CentOS Stream 9
+
+- name: Install OpenSCAP packages
+  yum:
+    name:
+      - openscap-scanner
+      - scap-security-guide
+    state: present
+
+- name: Run OpenSCAP CIS scan
+  command: >
+    oscap xccdf eval
+    --profile xccdf_org.ssgproject.content_profile_cis
+    --results /home/{{ ansible_user }}/reports/openscap/cis-results.xml
+    --report /home/{{ ansible_user }}/reports/openscap/cis-report.html
+    /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+  args:
+    creates: /home/{{ ansible_user }}/reports/openscap/cis-report.html
+
+- name: Ensure reports directory is world-readable
+  file:
+    path: /home/{{ ansible_user }}/reports/openscap
+    mode: '0755'
+    state: directory

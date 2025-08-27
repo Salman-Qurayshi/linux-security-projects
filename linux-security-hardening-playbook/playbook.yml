@@ -1,0 +1,7 @@
+---
+- name: Linux Security Hardening
+  hosts: localhost
+  become: yes
+  roles:
+    - openscap
+
