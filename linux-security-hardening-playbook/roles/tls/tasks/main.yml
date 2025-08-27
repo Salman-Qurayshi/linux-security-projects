@@ -1,2 +1,38 @@
 ---
-# Tasks for tls will go here
+# Role: TLS / HTTPS Hardening
+
+- name: Ensure OpenSSL is installed
+  yum:
+    name: openssl
+    state: present
+  tags: tls
+
+- name: Create TLS reports directory
+  file:
+    path: "/home/{{ lookup('env','USER') }}/reports/tls"
+    state: directory
+    mode: '0755'
+  tags: tls
+
+- name: Generate self-signed certificate (if not exists)
+  command: >
+    openssl req -new -newkey rsa:2048 -days 365 -nodes -x509
+    -subj "/C=PK/ST=Sindh/L=Karachi/O=Portfolio/CN=localhost"
+    -keyout /etc/ssl/private/selfsigned.key
+    -out /etc/ssl/certs/selfsigned.crt
+  args:
+    creates: /etc/ssl/certs/selfsigned.crt
+  tags: tls
+
+- name: Save TLS certificate info
+  command: openssl x509 -in /etc/ssl/certs/selfsigned.crt -noout -text
+  register: tls_info
+  changed_when: false
+  tags: tls
+
+- name: Save TLS report
+  copy:
+    content: "{{ tls_info.stdout }}"
+    dest: "/home/{{ lookup('env','USER') }}/reports/tls/tls-report.txt"
+    mode: '0644'
+  tags: tls
