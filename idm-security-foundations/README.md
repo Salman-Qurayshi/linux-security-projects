@@ -49,26 +49,27 @@ This section documents the deployment and configuration steps for the Linux Iden
 #### Custom VPC & Subnet Creation
 
    # Create a custom VPC
+```
    gcloud compute networks create custom-vpc --subnet-mode=custom
-
+```
    # Create a subnet in the Middle East (Qatar) region
-   gcloud compute networks subnets create custom-subnet \
+```   gcloud compute networks subnets create custom-subnet \
      --network=custom-vpc \
      --region=me-central1 \
      --range=10.20.0.0/24
-
+```
 #### Firewall Rules – Allow SSH, HTTP, HTTPS
 
-   gcloud compute firewall-rules create allow-ssh-http-https \
+```   gcloud compute firewall-rules create allow-ssh-http-https \
      --network=custom-vpc \
      --allow tcp:22,tcp:80,tcp:443 \
      --source-ranges=0.0.0.0/0 \
      --description="Allow SSH, HTTP, HTTPS from anywhere"
-
+```
 #### VM Provisioning – Primary and Replica FreeIPA Servers
 
    # Primary FreeIPA server
-   gcloud compute instances create idm-primary \
+```   gcloud compute instances create idm-primary \
      --zone=me-central1-a \
      --machine-type=e2-standard-4 \
      --subnet=custom-subnet \
@@ -78,9 +79,9 @@ This section documents the deployment and configuration steps for the Linux Iden
      --boot-disk-size=50GB \
      --tags=idm-server \
      --metadata=enable-oslogin=FALSE
-
+```
    # Replica 1
-   gcloud compute instances create idm-replica1 \
+```   gcloud compute instances create idm-replica1 \
      --zone=me-central1-a \
      --machine-type=e2-standard-2 \
      --subnet=custom-subnet \
@@ -90,9 +91,9 @@ This section documents the deployment and configuration steps for the Linux Iden
      --boot-disk-size=30GB \
      --tags=idm-server \
      --metadata=enable-oslogin=FALSE
-
+```
    # Replica 2
-   gcloud compute instances create idm-replica2 \
+```   gcloud compute instances create idm-replica2 \
      --zone=me-central1-a \
      --machine-type=e2-standard-2 \
      --subnet=custom-subnet \
@@ -102,51 +103,53 @@ This section documents the deployment and configuration steps for the Linux Iden
      --boot-disk-size=30GB \
      --tags=idm-server \
      --metadata=enable-oslogin=FALSE
-
+```
 ### 2️⃣ Base Server Configuration
 
 Performed on all nodes (Primary & Replicas):
 
 #### 🔹 System Update & Package Installation
-
+```
    sudo dnf update -y
    sudo dnf install -y vim bash-completion firewalld
-
+```
 #### 🔹 Hostname Configuration
 
    # Example for idm-primary
+```   
    sudo hostnamectl set-hostname idm-primary.lab.local
-
+```
    # Replicas
+```   
    sudo hostnamectl set-hostname idm-replica1.lab.local
    sudo hostnamectl set-hostname idm-replica2.lab.local
-
+```
 #### 🔹 /etc/hosts Configuration
 
 Configured FQDNs and kept GCP internal hostnames as aliases:
-
+```
    10.20.0.10   idm-primary.lab.local   idm-primary
    10.20.0.11   idm-replica1.lab.local  idm-replica1
    10.20.0.12   idm-replica2.lab.local  idm-replica2
-
+```
 #### 🔹 Firewalld Configuration
-
+```
    sudo systemctl enable --now firewalld
    sudo firewall-cmd --permanent --add-service=ssh
    sudo firewall-cmd --reload
-
+```
 This ensures baseline host-level security in addition to GCP firewall rules.
 
 ### 3️⃣ FreeIPA Server Installation (idm-primary)
 
 #### 🔹 Install Server Packages
-
+```
    sudo dnf install -y ipa-server ipa-server-dns bind-dyndb-ldap
-
+```
 #### 🔹 Run FreeIPA Installer
-
+```
    sudo ipa-server-install --setup-dns
-
+```
 Key Configuration Choices:
 
 * Server Hostname: idm-primary.lab.local
