@@ -107,6 +107,12 @@ This section documents the deployment and configuration steps for the Linux Iden
      --metadata=enable-oslogin=FALSE
 ```
 
+![GCP VMs](screenshots/gcp-vms.png)
+
+![GCP Firewall Rules](screenshots/gcp-firewall-rules.png)
+
+
+
 ## Verify
 
 After creation, list them:
@@ -114,6 +120,18 @@ After creation, list them:
 ```
 gcloud compute instances list --filter="name~'idm-'"
 ```
+
+```
+gcloud compute networks subnets list --filter="network:custom-vpc"
+```
+![VPC and VMs](screenshots/vpc-and-vms-list.png)
+
+
+```
+gcloud compute firewall-rules list --filter="network=custom-vpc"
+```
+![Firewall Rules List](screenshots/firewall-rules-list.png)
+
 
 Then SSH:
 
@@ -167,6 +185,10 @@ Performed on all nodes (Primary & Replicas):
    sudo hostnamectl set-hostname idm-replica1.lab.local
    sudo hostnamectl set-hostname idm-replica2.lab.local
 ```
+
+![Hostnamectl](screenshots/hostnamectl.png)
+
+
 
 ### 🔹 Update `/etc/hosts`
 
@@ -308,6 +330,9 @@ Centralized user and group management is configured via **FreeIPA Web UI** or CL
 | devs | Development team |
 | finance | Finance team |
 
+![FreeIPA Groups](screenshots/centos-IdM-groups.png)
+
+
 ### 5B. Create Users
 
 | Username | First Name | Last Name | Group | Email |
@@ -317,6 +342,9 @@ Centralized user and group management is configured via **FreeIPA Web UI** or CL
 | bob-finance | Bob | Finance | finance | bob@lab.local |
 - Set an initial password (e.g., `Lab1234!`)
 - Optional: uncheck “User must change password at next login” for testing
+
+![FreeIPA Users](screenshots/centos-IdM-users.png)
+
 
 </details>
 
@@ -363,11 +391,14 @@ In your browser:
 https://idm-primary.lab.local/ipa/ui
 
 ```
-
 - Accept self-signed certificate warning
 - Login with:
     - **Username:** `admin`
     - **Password:** IPA admin password
+
+![FreeIPA Dashboard](screenshots/centos-idm-dashboard.png)
+
+
 
 
 ### 6D. CLI Verification (Optional)
