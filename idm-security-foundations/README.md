@@ -199,6 +199,7 @@ Final `/etc/hosts` should look like this:
 ```
    sudo systemctl enable --now firewalld
    sudo firewall-cmd --permanent --add-service=ssh
+   sudo firewall-cmd --permanent --add-service=ntp
    sudo firewall-cmd --reload
 ```
 
@@ -216,13 +217,21 @@ This ensures baseline host-level security in addition to GCP firewall rules.
 ```
 Key Configuration Choices:
 
-* Server Hostname: idm-primary.lab.local
-* Domain: lab.local
-* Realm: LAB.LOCAL
-* Passwords: Directory Manager & IPA admin (secure strong passwords)
-* Integrated DNS: Enabled with Google (8.8.8.8) and Cloudflare (1.1.1.1) forwarders
-* NetBIOS: Default LAB
-* Confirm configuration: Yes
+When prompted, answer like this (replace `CHANGE_ME_*` with strong passwords):
+
+- **Server host name** → `idm-primary.lab.local`
+- **Domain name** → `lab.local`
+- **Realm name** → `LAB.LOCAL` (press Enter to accept)
+- **Directory Manager password** → `CHANGE_ME_DM_PASS`
+- **IPA admin password** → `CHANGE_ME_ADMIN_PASS`
+- **Configure integrated DNS** → `Yes`
+- **Configure DNS forwarders** → `Yes`
+    - Add `8.8.8.8` (Google DNS)
+    - Add `1.1.1.1` (Cloudflare DNS)
+    - Do **NOT** add `169.254.169.254` (GCP metadata DNS – IPA rejects it)
+- **NetBIOS name** → accept default `LAB`
+- **Configure `chrony` with NTP server/pool** → `No`
+- **Do you want to configure the system with these values?** → `Yes`
 
 Ensures centralized authentication and DNS integration for the lab environment.
 
