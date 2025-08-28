@@ -44,6 +44,8 @@ The architecture ensures **segregated network layers, secure host access, and sc
 
 This section documents the deployment and configuration steps for the Linux Identity & Security Foundations project. All commands and configurations reflect real-world enterprise practices, emphasizing security, automation, and repeatability.
 
+---
+
 ### 1️⃣ Cloud Infrastructure Provisioning (IaC with CLI)
 
 #### Custom VPC & Subnet Creation
@@ -143,6 +145,7 @@ Here’s a screenshot showing Multi-Execution Mode in action:
 
 > Using this was **really exciting**!! Running commands across all servers at once felt **super powerful** and saved a ton of time.
 
+---
 
 ### 2️⃣ Base Server Configuration
 
@@ -205,6 +208,8 @@ Final `/etc/hosts` should look like this:
 
 This ensures baseline host-level security in addition to GCP firewall rules.
 
+---
+
 ### 3️⃣ FreeIPA Server Installation (idm-primary)
 
 #### 🔹 Install Server Packages
@@ -235,43 +240,451 @@ When prompted, answer like this (replace `CHANGE_ME_*` with strong passwords):
 
 Ensures centralized authentication and DNS integration for the lab environment.
 
-### 4️⃣ FreeIPA Clients & Replica Setup
+---
 
-Replicas configured as FreeIPA replica servers, synchronized with idm-primary.
+### 4️⃣ FreeIPA Replica Setup & Client Enrollment
 
-Clients can be enrolled using ipa-client-install for secure access and centralized authentication.
+Replicas are configured as **FreeIPA replica servers**, synchronized with `idm-primary`. Clients (replicas or other servers) can be enrolled for centralized authentication using `ipa-client-install`.
+
+<details>
+<summary>💡 Detailed Steps (Click to Expand)</summary>
+
+### 4A. Install FreeIPA Client Packages
+
+On **each replica**:
+
+```
+sudo dnf install -y ipa-client
+
+```
+
+### 4B. Run the Client Installer
+
+```
+sudo ipa-client-install --mkhomedir \
+  --server=idm-primary.lab.local \
+  --domain=lab.local
+
+```
+
+**Follow prompts:**
+
+- Proceed with default/fixed values → `yes`
+- Configure chrony with NTP → `no`
+- Confirm hostname, realm, domain, IPA server → `yes`
+- Enter IPA admin credentials → `admin` + IPA admin password
+
+### 4C. Verify Enrollment
+
+```
+# Check hostnames
+hostname
+
+# Verify host records in FreeIPA
+ipa host-show idm-replica1.lab.local
+ipa host-show idm-replica2.lab.local
+
+```
+
+✅ Both replicas should now be enrolled with the primary IPA server.
+
+</details>
+
+
+---
 
 ### 5️⃣ Identity & Access Management (IAM) Configuration
 
-#### 🔹 Groups
+Centralized user and group management is configured via **FreeIPA Web UI** or CLI.
 
-* admins — full administrative access
-* devs — development team
-* finance — finance team
+<details>
+<summary>💡 Web UI Steps & Users/Groups (Click to Expand)</summary>
 
-#### 🔹 Users
+### 5A. Create Groups
 
-* carol_admin → admins
-* alice_dev → devs
-* bob_finance → finance
+| Group Name | Description |
+| --- | --- |
+| admins | Full access users (IdM admins) |
+| devs | Development team |
+| finance | Finance team |
 
-#### 🔹 Sudo & HBAC Rules
+### 5B. Create Users
 
-* SUDO: Full access for admins group
-* HBAC: Host-based access control rules limiting SSH access per user and host
+| Username | First Name | Last Name | Group | Email |
+| --- | --- | --- | --- | --- |
+| carol-admin | Carol | Admin | admins | carol@lab.local |
+| alice-dev | Alice | Dev | devs | alice@lab.local |
+| bob-finance | Bob | Finance | finance | bob@lab.local |
+- Set an initial password (e.g., `Lab1234!`)
+- Optional: uncheck “User must change password at next login” for testing
 
-#### 🔹 Kerberos Authentication
+</details>
 
-* Ticket-based authentication enabled across all nodes
-* Users authenticate securely using Kerberos principal
+---
 
-### 6️⃣ Secure Management
+### 6️⃣ Secure Management & Web UI Access
 
-* SSH Key Authentication for all servers
-* HTTPS Web UI accessible via SSH tunnel for secure remote administration
+Administrative access is secured via **SSH key authentication** and **HTTPS Web UI over SSH tunnel**.
 
-Ensures enterprise-grade security for administrative access
+<details>
+<summary>💡 Detailed Steps (Click to Expand)</summary>
 
+### 6A. Prepare SSH Tunnel (Windows PowerShell)
+
+```powershell
+ssh -i C:\Users\path\to\openssh-file -L 443:idm-primary.lab.local:443 <idm-primary-username>@<GCP-IP>
+```
+
+- `i <path>` → path to private key
+- `L 443:idm-primary.lab.local:443` → forward local port 443 to FreeIPA server HTTPS
+- Keep this terminal **open** to maintain the tunnel
+
+### 6B. Map the Hostname (Optional)
+
+Edit **Windows hosts file**:
+
+```
+C:\Windows\System32\drivers\etc\hosts
+
+```
+
+Add:
+
+```
+127.0.0.1   idm-primary.lab.local
+
+```
+
+### 6C. Access Web UI
+
+In your browser:
+
+```
+https://idm-primary.lab.local/ipa/ui
+
+```
+
+- Accept self-signed certificate warning
+- Login with:
+    - **Username:** `admin`
+    - **Password:** IPA admin password
+
+
+### 6D. CLI Verification (Optional)
+
+```
+echo "==================== HOSTS ===================="
+ipa host-find
+
+echo -e "\n==================== HOST GROUPS ===================="
+ipa hostgroup-find
+
+echo -e "\n==================== USERS ===================="
+ipa user-find
+
+echo -e "\n==================== GROUPS ===================="
+ipa group-find
+
+echo -e "\n==================== SUDO RULES ===================="
+ipa sudorule-find
+for rule in $(ipa sudorule-find --all | awk '/Rule name:/ {print $3}'); do
+    ipa sudorule-show $rule --all
+done
+
+echo -e "\n==================== HBAC SERVICES ===================="
+ipa hbacsvc-find
+
+echo -e "\n==================== HBAC RULES ===================="
+ipa hbacrule-find
+for rule in $(ipa hbacrule-find --all | awk '/Rule name:/ {print $3}'); do
+    ipa hbacrule-show $rule --all
+done
+
+echo -e "\n==================== KERBEROS TICKETS ===================="
+klist
+```
+
+<details> <summary>  My Setup output: (Click to Expand)</summary>
+ 
+```
+==================== HOSTS ====================
+---------------
+3 hosts matched
+---------------
+  Host name: idm-primary.lab.local
+  Principal name: host/idm-primary.lab.local@LAB.LOCAL
+  Principal alias: host/idm-primary.lab.local@LAB.LOCAL
+  SSH public key fingerprint: SHA256:A6eviqSrJ0lQRgBvqtFIhiW4aLKK3AZHu870LA1jiCM root@idm-primary (ssh-ed25519), SHA256:BSH8oMBAaEzhdDf5bb5Q7eHjNV7sdYR+GSLlyjN0lXY root@idm-primary
+                              (ecdsa-sha2-nistp256), SHA256:6HcA1XECR/f9MgLGIRrhF+HAfs3to6y+Sk6CIbyIEik root@idm-primary (ssh-rsa)
+
+  Host name: idm-replica1.lab.local
+  Platform: x86_64
+  Operating system: 5.14.0-603.el9.x86_64
+  Principal name: host/idm-replica1.lab.local@LAB.LOCAL
+  Principal alias: host/idm-replica1.lab.local@LAB.LOCAL
+  SSH public key fingerprint: SHA256:vV4cfZINEqIWUs7J2nhtnSAHtV7q9TifkGZIwDKMAOM root@idm-replica1 (ssh-ed25519), SHA256:q+aNxhuASTqxmtxKkRx1yeis+r+J/wi1TDtFJjwfvMU root@idm-replica1
+                              (ecdsa-sha2-nistp256), SHA256:CbqELHhQka/vPSeGjZmNFeaMoT02iJbs77KnQais6fI root@idm-replica1 (ssh-rsa)
+
+  Host name: idm-replica2.lab.local
+  Platform: x86_64
+  Operating system: 5.14.0-603.el9.x86_64
+  Principal name: host/idm-replica2.lab.local@LAB.LOCAL
+  Principal alias: host/idm-replica2.lab.local@LAB.LOCAL
+  SSH public key fingerprint: SHA256:PcVaf2tpHqGOxAqxaV8ZWY1xQclPtAS9rZcj/ZaV2JY root@idm-replica2 (ssh-ed25519), SHA256:i7NA+pSEmxluosi/zMAOIdQw/iTvXEJkmd/YJtWeXh0 root@idm-replica2
+                              (ecdsa-sha2-nistp256), SHA256:fBPFzqeSU/aMayAo2XUJ5XwlPCa97FmPDxhUQdyNOdA root@idm-replica2 (ssh-rsa)
+----------------------------
+Number of entries returned 3
+----------------------------
+
+==================== HOST GROUPS ====================
+-------------------
+1 hostgroup matched
+-------------------
+  Host-group: ipaservers
+  Description: IPA server hosts
+----------------------------
+Number of entries returned 1
+----------------------------
+
+==================== USERS ====================
+---------------
+4 users matched
+---------------
+  User login: admin
+  Last name: Administrator
+  Home directory: /home/admin
+  Login shell: /bin/bash
+  Principal name: admin@LAB.LOCAL
+  Principal alias: admin@LAB.LOCAL, root@LAB.LOCAL
+  UID: 1708800000
+  GID: 1708800000
+  Account disabled: False
+
+  User login: alice_dev
+  First name: alice
+  Last name: Dev
+  Home directory: /home/alice_dev
+  Login shell: /bin/sh
+  Principal name: alice_dev@LAB.LOCAL
+  Principal alias: alice_dev@LAB.LOCAL
+  Email address: alice_dev@lab.local
+  UID: 1708800006
+  GID: 1708800006
+  Account disabled: False
+
+  User login: bob_finance
+  First name: bob
+  Last name: finance
+  Home directory: /home/bob_finance
+  Login shell: /bin/sh
+  Principal name: bob_finance@LAB.LOCAL
+  Principal alias: bob_finance@LAB.LOCAL
+  Email address: bob_finance@lab.local
+  UID: 1708800007
+  GID: 1708800007
+  Account disabled: False
+
+  User login: carol_admin
+  First name: Carol
+  Last name: Admin
+  Home directory: /home/carol_admin
+  Login shell: /bin/sh
+  Principal name: carol_admin@LAB.LOCAL
+  Principal alias: carol_admin@LAB.LOCAL
+  Email address: carol_admin@lab.local
+  UID: 1708800005
+  GID: 1708800005
+  Account disabled: False
+----------------------------
+Number of entries returned 4
+----------------------------
+
+==================== GROUPS ====================
+----------------
+6 groups matched
+----------------
+  Group name: admins
+  Description: Account administrators group
+  GID: 1708800000
+
+  Group name: devs
+  Description: Development team
+  GID: 1708800003
+
+  Group name: editors
+  Description: Limited admins who can edit other users
+  GID: 1708800002
+
+  Group name: finance
+  Description: Finance team
+  GID: 1708800004
+
+  Group name: ipausers
+  Description: Default group for all users
+
+  Group name: trust admins
+  Description: Trusts administrators group
+----------------------------
+Number of entries returned 6
+----------------------------
+
+==================== SUDO RULES ====================
+-------------------
+1 Sudo Rule matched
+-------------------
+  Rule name: admins_all_sudo
+  Description: Full sudo access for admins group
+  Enabled: True
+----------------------------
+Number of entries returned 1
+----------------------------
+  dn: ipaUniqueID=8e454194-8408-11f0-a69b-42010a14000a,cn=sudorules,cn=sudo,dc=lab,dc=local
+  Rule name: admins_all_sudo
+  Description: Full sudo access for admins group
+  Enabled: True
+  User Groups: admins
+  Hosts: idm-primary.lab.local
+  ipauniqueid: 8e454194-8408-11f0-a69b-42010a14000a
+  objectclass: ipaassociation, ipasudorule
+
+==================== HBAC SERVICES ====================
+------------------------
+17 HBAC services matched
+------------------------
+  Service name: crond
+  Description: crond
+
+  Service name: ftp
+  Description: ftp
+
+  Service name: gdm
+  Description: gdm
+
+  Service name: gdm-password
+  Description: gdm-password
+
+  Service name: gssftp
+  Description: gssftp
+
+  Service name: kdm
+  Description: kdm
+
+  Service name: login
+  Description: login
+
+  Service name: proftpd
+  Description: proftpd
+
+  Service name: pure-ftpd
+  Description: pure-ftpd
+
+  Service name: ssh
+  Description: SSH access
+
+  Service name: sshd
+  Description: sshd
+
+  Service name: su
+  Description: su
+
+  Service name: su-l
+  Description: su with login shell
+
+  Service name: sudo
+  Description: sudo
+
+  Service name: sudo-i
+  Description: sudo-i
+
+  Service name: systemd-user
+  Description: pam_systemd and systemd user@.service
+
+  Service name: vsftpd
+  Description: vsftpd
+-----------------------------
+Number of entries returned 17
+-----------------------------
+
+==================== HBAC RULES ====================
+--------------------
+4 HBAC rules matched
+--------------------
+  Rule name: allow_all
+  User category: all
+  Host category: all
+  Service category: all
+  Description: Allow all users to access any host from any host
+  Enabled: True
+
+  Rule name: allow_systemd-user
+  User category: all
+  Host category: all
+  Description: Allow pam_systemd to run user@.service to create a system user session
+  Enabled: True
+
+  Rule name: ssh_alice_only_replica2
+  Description: Only alice-dev can SSH to replica2
+  Enabled: True
+
+  Rule name: ssh_bob_only_replica1
+  Description: Only bob-finance can SSH to replica1
+  Enabled: True
+----------------------------
+Number of entries returned 4
+----------------------------
+  dn: ipaUniqueID=9b284316-83ef-11f0-b080-42010a14000a,cn=hbac,dc=lab,dc=local
+  Rule name: allow_all
+  User category: all
+  Host category: all
+  Service category: all
+  Description: Allow all users to access any host from any host
+  Enabled: True
+  accessruletype: allow
+  ipauniqueid: 9b284316-83ef-11f0-b080-42010a14000a
+  objectclass: ipaassociation, ipahbacrule
+  dn: ipaUniqueID=9b2b38b4-83ef-11f0-a8b9-42010a14000a,cn=hbac,dc=lab,dc=local
+  Rule name: allow_systemd-user
+  User category: all
+  Host category: all
+  Description: Allow pam_systemd to run user@.service to create a system user session
+  Enabled: True
+  HBAC Services: systemd-user
+  accessruletype: allow
+  ipauniqueid: 9b2b38b4-83ef-11f0-a8b9-42010a14000a
+  objectclass: ipaassociation, ipahbacrule
+  dn: ipaUniqueID=4f6508da-840b-11f0-95f2-42010a14000a,cn=hbac,dc=lab,dc=local
+  Rule name: ssh_alice_only_replica2
+  Description: Only alice-dev can SSH to replica2
+  Enabled: True
+  Users: alice_dev
+  Hosts: idm-replica2.lab.local
+  HBAC Services: ssh
+  accessruletype: allow
+  ipauniqueid: 4f6508da-840b-11f0-95f2-42010a14000a
+  objectclass: ipaassociation, ipahbacrule
+  dn: ipaUniqueID=4962d2fa-840b-11f0-8ffd-42010a14000a,cn=hbac,dc=lab,dc=local
+  Rule name: ssh_bob_only_replica1
+  Description: Only bob-finance can SSH to replica1
+  Enabled: True
+  Users: bob_finance
+  Hosts: idm-replica1.lab.local
+  accessruletype: allow
+  ipauniqueid: 4962d2fa-840b-11f0-8ffd-42010a14000a
+  objectclass: ipaassociation, ipahbacrule
+
+==================== KERBEROS TICKETS ====================
+Ticket cache: KCM:1001
+Default principal: admin@LAB.LOCAL
+
+Valid starting       Expires              Service principal
+08/28/2025 09:24:03  08/29/2025 09:08:38  HTTP/idm-primary.lab.local@LAB.LOCAL
+08/28/2025 09:24:02  08/29/2025 09:08:38  krbtgt/LAB.LOCAL@LAB.LOCAL
+[~\ idm-primary]$
+```
+</details>
+</details>
+
+---
 
 ## Key Achievements
 
