@@ -104,6 +104,30 @@ This section documents the deployment and configuration steps for the Linux Iden
      --tags=idm-server \
      --metadata=enable-oslogin=FALSE
 ```
+
+## Verify
+
+After creation, list them:
+
+```
+gcloud compute instances list --filter="name~'idm-'"
+```
+
+Then SSH:
+
+```
+gcloud compute ssh idm-primary --zone=me-central1-a
+```
+
+> i ssh'ed using MobaXterm by first adding my public key in the GCP VM edit section for each
+
+
+---
+
+✅ This will give us **3 servers ready in Qatar region**, with **SSH, HTTP, HTTPS open from anywhere**.
+
+> used Qatar region because of reduced latency ( Qatar --> Pakistan )
+
 ### 2️⃣ Base Server Configuration
 
 Performed on all nodes (Primary & Replicas):
