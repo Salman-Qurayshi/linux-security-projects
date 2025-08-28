@@ -1,8 +1,8 @@
-# Linux Identity & Security Foundations Project 🛡️
+# Linux Identity & Security Foundations Project
 
 Hi! I'm **Salman Qureshi**, and this project demonstrates the implementation of a **robust Identity Management (IdM) infrastructure** using **FreeIPA** on **Google Cloud Platform (GCP)**. The deployment showcases **enterprise-grade identity and access management capabilities**, including centralized authentication, authorization, and security policy enforcement across multiple servers.
 
-## 📝 Project Overview
+## Project Overview
 
 This project focuses on **designing a secure, scalable Linux identity and access management environment** with automation, following best practices in cloud security and Linux administration:
 
@@ -14,7 +14,7 @@ This project focuses on **designing a secure, scalable Linux identity and access
 
 This project demonstrates **a full-stack approach to Linux security, identity management, and cloud infrastructure automation** — showcasing skills applicable to real-world enterprise environments.
 
-## 🛠️ Skills Demonstrated
+##  Skills Demonstrated
 
 * **Cloud Infrastructure:** Architected and deployed a multi-server environment using **GCP VPCs, subnets, and firewall rules**.
 * **Identity & Access Management:** Implemented **centralized authentication**, user/group management, HBAC rules, and SUDO policies using FreeIPA.
@@ -25,7 +25,7 @@ This project demonstrates **a full-stack approach to Linux security, identity ma
 * **Web-Based Management:** Demonstrated **secure HTTPS-based administration** of the IdM infrastructure via SSH tunnels.
 * **Monitoring & Validation:** Validated host enrollment, user authentication, service availability, and access control enforcement.
 
-## 🌐 Project Architecture
+## Project Architecture
 
 The project was deployed on **Google Cloud Platform** with the following custom infrastructure:
 
@@ -128,6 +128,22 @@ gcloud compute ssh idm-primary --zone=me-central1-a
 
 > used Qatar region because of reduced latency ( Qatar --> Pakistan )
 
+### 🔹 Multi-Execution Mode with MobaXterm
+
+To streamline configuration across all three VMs, I used **MobaXterm's Multi-Execution Mode**. This feature allows you to **run commands simultaneously on multiple SSH sessions**, saving time and reducing errors.  
+
+Key points:  
+- Commands executed on **all VMs at once** (idm-primary, idm-replica1, idm-replica2).  
+- **Exclusion option**: You can temporarily exclude a VM if you only want to run commands on one or two servers.  
+- Great for **hostname setup, system updates, package installations, and firewalld configuration**.  
+
+Here’s a screenshot showing Multi-Execution Mode in action:
+
+![Multi-Execution Mode](screenshots//Multi-execution-mode.png)
+
+> Using this was **really exciting**!! Running commands across all servers at once felt **super powerful** and saved a ton of time.
+
+
 ### 2️⃣ Base Server Configuration
 
 Performed on all nodes (Primary & Replicas):
@@ -139,29 +155,53 @@ Performed on all nodes (Primary & Replicas):
 ```
 #### 🔹 Hostname Configuration
 
-   # Example for idm-primary
+   ### Example for idm-primary
 ```   
    sudo hostnamectl set-hostname idm-primary.lab.local
 ```
-   # Replicas
+   ### Replicas
 ```   
    sudo hostnamectl set-hostname idm-replica1.lab.local
    sudo hostnamectl set-hostname idm-replica2.lab.local
 ```
-#### 🔹 /etc/hosts Configuration
 
-Configured FQDNs and kept GCP internal hostnames as aliases:
+### 🔹 Update `/etc/hosts`
+
+Edit the file on **all servers**:
+
 ```
-   10.20.0.10   idm-primary.lab.local   idm-primary
-   10.20.0.11   idm-replica1.lab.local  idm-replica1
-   10.20.0.12   idm-replica2.lab.local  idm-replica2
+sudo vim /etc/hosts
 ```
+
+Replace the default GCP lines so that our **lab FQDN is first**, but still keep the GCP-injected internal hostname as a secondary alias.
+
+Final `/etc/hosts` should look like this:
+
+```
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+10.20.0.10   idm-primary.lab.local   idm-primary idm-primary.me-central1-a.c.windy-lyceum-464103-m5.internal
+10.20.0.11   idm-replica1.lab.local  idm-replica1 idm-replica1.me-central1-a.c.windy-lyceum-464103-m5.internal
+10.20.0.12   idm-replica2.lab.local  idm-replica2 idm-replica2.me-central1-a.c.windy-lyceum-464103-m5.internal
+
+169.254.169.254 metadata.google.internal  # Added by Google
+
+```
+
+👉 Key points:
+
+- The **`.lab.local`** FQDNs are **first** (FreeIPA will register these).
+- The GCP internal names are kept as aliases (to avoid breaking Google’s tools).
+
+
 #### 🔹 Firewalld Configuration
 ```
    sudo systemctl enable --now firewalld
    sudo firewall-cmd --permanent --add-service=ssh
    sudo firewall-cmd --reload
 ```
+
 This ensures baseline host-level security in addition to GCP firewall rules.
 
 ### 3️⃣ FreeIPA Server Installation (idm-primary)
