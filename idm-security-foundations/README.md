@@ -2,6 +2,22 @@
 
 Hi! I'm **Salman Qureshi**, and this project demonstrates the implementation of a **robust Identity Management (IdM) infrastructure** using **FreeIPA** on **Google Cloud Platform (GCP)**. The deployment showcases **enterprise-grade identity and access management capabilities**, including centralized authentication, authorization, and security policy enforcement across multiple servers.
 
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Skills Demonstrated](#skills-demonstrated)
+- [Project Architecture](#project-architecture)
+- [Project Implementation & Configuration](#project-implementation--configuration)
+  - [Cloud Infrastructure Provisioning](#1️⃣-cloud-infrastructure-provisioning-iac-with-cli)
+  - [Base Server Configuration](#2️⃣-base-server-configuration)
+  - [FreeIPA Server Installation](#3️⃣-freeipa-server-installation-idm-primary)
+  - [Replica Setup & Client Enrollment](#4️⃣-freeipa-replica-setup--client-enrollment)
+- [Key Achievements](#key-achievements)
+- [Technologies & Security Concepts Utilized](#🔹-technologies--security-concepts-utilized)
+- [Project Impact](#🔹-project-impact)
+
+
 ## Project Overview
 
 This project focuses on **designing a secure, scalable Linux identity and access management environment** with automation, following best practices in cloud security and Linux administration:
