@@ -15,7 +15,7 @@ Hi! I'm **Salman Qureshi**, and this project demonstrates the implementation of 
   - [Replica Setup & Client Enrollment](#4️⃣-freeipa-replica-setup--client-enrollment)
 - [Key Achievements](#key-achievements)
 - [Technologies & Security Concepts Utilized](#🔹-technologies--security-concepts-utilized)
-- [Project Impact](#🔹-project-impact)
+- [Project Impact](#-project-impact)
 
 
 ## Project Overview
