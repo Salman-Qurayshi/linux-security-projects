@@ -55,18 +55,18 @@ These smaller projects demonstrate **focused Linux security skills**:
 
 Here's a **high-level overview** of this repo:
 ```
-   linux-security-projects/
+  📂 linux-security-projects/
    ├── README.md
-   ├── idm-security-foundations/
+   ├── 📂idm-security-foundations/
    │   ├── README.md
    │   ├── IdM_Security_Foundations-setup-doc.pdf
    │   └── screenshots/
-   ├── individual-projects/
+   ├── 📂individual-projects/
    │   ├── AIDE-intrusion-detection/
    │   ├── Auditd-system-logging/
    │   ├── SELinux-access-control/
    │   └── TLS-secure-communication/
-   └── linux-security-hardening-playbook/
+   └── 📂linux-security-hardening-playbook/
        ├── README.md
        ├── playbook.yml
        ├── reports/
@@ -83,3 +83,4 @@ For more details, each project folder contains its **own README** with setup ins
 
 ---
 ---
+
