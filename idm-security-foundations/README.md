@@ -13,8 +13,10 @@ Hi! I'm **Salman Qureshi**, and this project demonstrates the implementation of 
   - [Base Server Configuration](#2️⃣-base-server-configuration)
   - [FreeIPA Server Installation](#3️⃣-freeipa-server-installation-idm-primary)
   - [Replica Setup & Client Enrollment](#4️⃣-freeipa-replica-setup--client-enrollment)
+  - [Secure Management & Web UI Access](#5%EF%B8%8F%E2%83%A3-secure-management--web-ui-access).
+  - [Identity & Access Management (IAM) Configuration](#6%EF%B8%8F-identity--access-management-iam-configuration)
 - [Key Achievements](#key-achievements)
-- [Technologies & Security Concepts Utilized](#🔹-technologies--security-concepts-utilized)
+- [Technologies & Security Concepts Utilized]([d#-technologies--security-concepts-utilized))
 - [Project Impact](#-project-impact)
 
 
