@@ -331,49 +331,14 @@ ipa host-show idm-replica2.lab.local
 
 ---
 
-### 5️⃣ Identity & Access Management (IAM) Configuration
-
-Centralized user and group management is configured via **FreeIPA Web UI** or CLI.
-
-<details>
-<summary>💡 Web UI Steps & Users/Groups (Click to Expand)</summary>
-
-### 5A. Create Groups
-
-| Group Name | Description |
-| --- | --- |
-| admins | Full access users (IdM admins) |
-| devs | Development team |
-| finance | Finance team |
-
-![FreeIPA Groups](screenshots/centos-IdM-groups.png)
-
-
-### 5B. Create Users
-
-| Username | First Name | Last Name | Group | Email |
-| --- | --- | --- | --- | --- |
-| carol-admin | Carol | Admin | admins | carol@lab.local |
-| alice-dev | Alice | Dev | devs | alice@lab.local |
-| bob-finance | Bob | Finance | finance | bob@lab.local |
-- Set an initial password (e.g., `Lab1234!`)
-- Optional: uncheck “User must change password at next login” for testing
-
-![FreeIPA Users](screenshots/centos-IdM-users.png)
-
-
-</details>
-
----
-
-### 6️⃣ Secure Management & Web UI Access
+### 5️⃣ Secure Management & Web UI Access
 
 Administrative access is secured via **SSH key authentication** and **HTTPS Web UI over SSH tunnel**.
 
 <details>
 <summary>💡 Detailed Steps (Click to Expand)</summary>
 
-### 6A. Prepare SSH Tunnel (Windows PowerShell)
+### 5A. Prepare SSH Tunnel (Windows PowerShell)
 
 ```powershell
 ssh -i C:\Users\path\to\openssh-file -L 443:idm-primary.lab.local:443 <idm-primary-username>@<GCP-IP>
@@ -383,7 +348,7 @@ ssh -i C:\Users\path\to\openssh-file -L 443:idm-primary.lab.local:443 <idm-prima
 - `L 443:idm-primary.lab.local:443` → forward local port 443 to FreeIPA server HTTPS
 - Keep this terminal **open** to maintain the tunnel
 
-### 6B. Map the Hostname (Optional)
+### 5B. Map the Hostname (Optional)
 
 Edit **Windows hosts file**:
 
@@ -399,7 +364,7 @@ Add:
 
 ```
 
-### 6C. Access Web UI
+### 5C. Access Web UI
 
 In your browser:
 
@@ -413,6 +378,43 @@ https://idm-primary.lab.local/ipa/ui
     - **Password:** IPA admin password
 
 ![FreeIPA Dashboard](screenshots/centos-idm-dashboard.png)
+
+
+
+</details>
+
+---
+
+
+### 6️ Identity & Access Management (IAM) Configuration
+
+Centralized user and group management is configured via **FreeIPA Web UI** or CLI.
+
+<details>
+<summary>💡 Web UI Steps & Users/Groups (Click to Expand)</summary>
+
+### 6A. Create Groups
+
+| Group Name | Description |
+| --- | --- |
+| admins | Full access users (IdM admins) |
+| devs | Development team |
+| finance | Finance team |
+
+![FreeIPA Groups](screenshots/centos-IdM-groups.png)
+
+
+### 6B. Create Users
+
+| Username | First Name | Last Name | Group | Email |
+| --- | --- | --- | --- | --- |
+| carol-admin | Carol | Admin | admins | carol@lab.local |
+| alice-dev | Alice | Dev | devs | alice@lab.local |
+| bob-finance | Bob | Finance | finance | bob@lab.local |
+- Set an initial password (e.g., `Lab1234!`)
+- Optional: uncheck “User must change password at next login” for testing
+
+![FreeIPA Users](screenshots/centos-IdM-users.png)
 
 
 
